@@ -1,0 +1,1363 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: ba47a7db6b954596b65126588f3cdafd
+      name: from_zabbix_koledino
+  templates:
+    - uuid: 8d1540aa1924482badf16c7d986010be
+      template: huawei-usg-6585e-v2
+      name: huawei-usg-6585e-v2
+      groups:
+        - name: from_zabbix_koledino
+      items:
+        - uuid: 2aa8bc44e3694944ae792b161bc38757
+          name: 'HW ProductName'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.2011.6.3.11.4.0
+          key: hwCompatibleProductName
+          delay: 1d
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'This object indicates the name of the compatible product of the new NE.'
+          inventory_link: TYPE
+          preprocessing:
+            - type: DISCARD_UNCHANGED
+              parameters:
+                - ''
+          tags:
+            - tag: usg6565e
+              value: Inventory
+        - uuid: 1ab21f4d2f8741648f98ecc776490522
+          name: 'HW Version'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.2011.6.3.11.2.0
+          key: hwCompatibleVersion
+          delay: 1d
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'This object indicates the compatible version of the new NE.'
+          inventory_link: OS_SHORT
+          preprocessing:
+            - type: DISCARD_UNCHANGED
+              parameters:
+                - ''
+          tags:
+            - tag: usg6565e
+              value: Inventory
+        - uuid: 607345b7688a437880d9c7fd21c5fea6
+          name: 'ICMP ping'
+          type: SIMPLE
+          key: icmpping
+          history: 1w
+          tags:
+            - tag: usg6565e
+              value: Status
+          triggers:
+            - uuid: ca41f587af6f4f1e879175d9356e366e
+              expression: 'max(/huawei-usg-6585e-v2/icmpping,3)=0'
+              name: 'Unavailable by ICMP ping'
+              priority: DISASTER
+              description: 'Last three attempts returned timeout.  Please check device connectivity.'
+              tags:
+                - tag: usg6565e
+                  value: status
+        - uuid: 8b805a6b6f9a4b0d9987dfe791eb3bfa
+          name: 'ICMP loss'
+          type: SIMPLE
+          key: icmppingloss
+          history: 1w
+          value_type: FLOAT
+          units: '%'
+          tags:
+            - tag: usg6565e
+              value: Status
+          triggers:
+            - uuid: bb5c836ea8ff49c1a2788f80157b181f
+              expression: 'min(/huawei-usg-6585e-v2/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/huawei-usg-6585e-v2/icmppingloss,5m)<100'
+              name: 'High ICMP ping loss'
+              opdata: 'Loss: {ITEM.LASTVALUE1}'
+              priority: AVERAGE
+              dependencies:
+                - name: 'Unavailable by ICMP ping'
+                  expression: 'max(/huawei-usg-6585e-v2/icmpping,3)=0'
+              tags:
+                - tag: usg6565e
+                  value: status
+        - uuid: 563bb7f2b88d40f6a925b39c290171b7
+          name: 'ICMP response time'
+          type: SIMPLE
+          key: icmppingsec
+          history: 1w
+          value_type: FLOAT
+          units: s
+          tags:
+            - tag: usg6565e
+              value: Status
+          triggers:
+            - uuid: 68badaecd3934075bd59c84fcff911cf
+              expression: 'avg(/huawei-usg-6585e-v2/icmppingsec,5m)>{$ICMP_RESPONSE_TIME_WARN}'
+              name: 'High ICMP ping response time'
+              opdata: 'Value: {ITEM.LASTVALUE1}'
+              priority: AVERAGE
+              dependencies:
+                - name: 'High ICMP ping loss'
+                  expression: 'min(/huawei-usg-6585e-v2/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/huawei-usg-6585e-v2/icmppingloss,5m)<100'
+                - name: 'Unavailable by ICMP ping'
+                  expression: 'max(/huawei-usg-6585e-v2/icmpping,3)=0'
+              tags:
+                - tag: usg6565e
+                  value: status
+        - uuid: b713ad0a878d43829e67e8b5a265425b
+          name: 'System description'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.1.0
+          key: 'system.descr[sysDescr.0]'
+          delay: 1h
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+          description: |
+            MIB: SNMPv2-MIB
+            A textual description of the entity. This value should
+            include the full name and version identification of the system's hardware type, software operating-system, and
+            networking software.
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          tags:
+            - tag: usg6565e
+              value: Inventory
+        - uuid: cce7d80cdc2545a6a47af06e3ca062cf
+          name: 'System location'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.6.0
+          key: 'system.location[sysLocation.0]'
+          delay: 1d
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+          description: |
+            MIB: SNMPv2-MIB
+            The physical location of this node (e.g., `telephone closet, 3rd floor').  If the location is unknown, the value is the zero-length string.
+          inventory_link: LOCATION
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          tags:
+            - tag: usg6565e
+              value: Inventory
+        - uuid: 65ba37ce084a4736b9f296e98dd5a25c
+          name: 'System name'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.5.0
+          key: system.name
+          delay: 6h
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+          description: |
+            MIB: SNMPv2-MIB
+            An administratively-assigned name for this managed node.By convention, this is the node's fully-qualified domain name.  If the name is unknown, the value is the zero-length string.
+          inventory_link: NAME
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 12h
+          tags:
+            - tag: usg6565e
+              value: Inventory
+          triggers:
+            - uuid: 588c47b37a8246acb910d12b05914e9a
+              expression: 'last(/huawei-usg-6585e-v2/system.name,#1)<>last(/huawei-usg-6585e-v2/system.name,#2) and length(last(/huawei-usg-6585e-v2/system.name))>0'
+              name: 'System name has changed'
+              event_name: 'System name has changed (new name: {ITEM.VALUE})'
+              priority: INFO
+              description: 'System name has changed. Ack to close.'
+              manual_close: 'YES'
+              dependencies:
+                - name: 'No SNMP data collection'
+                  expression: 'max(/huawei-usg-6585e-v2/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              tags:
+                - tag: usg6565e
+                  value: status
+        - uuid: 0f0d632f9bbe4e338e99326e3b7e46cc
+          name: Uptime
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.3.0
+          key: 'system.uptime[sysUpTime.0]'
+          delay: 10m
+          history: 90d
+          trends: '0'
+          units: uptime
+          description: |
+            MIB: SNMPv2-MIB
+            The time (in hundredths of a second) since the network management portion of the system was last re-initialized.
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.01'
+          tags:
+            - tag: usg6565e
+              value: Status
+          triggers:
+            - uuid: 44514b3044404d8a803abea633ceb671
+              expression: 'last(/huawei-usg-6585e-v2/system.uptime[sysUpTime.0])<10m'
+              name: 'has been restarted'
+              event_name: '{HOST.NAME} has been restarted (uptime < 10m)'
+              priority: WARNING
+              description: 'Uptime is less than 10 minutes.'
+              manual_close: 'YES'
+              dependencies:
+                - name: 'No SNMP data collection'
+                  expression: 'max(/huawei-usg-6585e-v2/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              tags:
+                - tag: usg6565e
+                  value: status
+        - uuid: e752628bb3e949ff8ca6325044d89883
+          name: 'SNMP agent availability'
+          type: INTERNAL
+          key: 'zabbix[host,snmp,available]'
+          delay: 3m
+          history: 7d
+          tags:
+            - tag: usg6565e
+              value: Status
+          triggers:
+            - uuid: 9d476937250f4f3a82f62f5ab3bcb224
+              expression: 'max(/huawei-usg-6585e-v2/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              name: 'No SNMP data collection'
+              opdata: 'Current state: {ITEM.LASTVALUE1}'
+              priority: HIGH
+              description: 'SNMP is not available for polling. Please check device connectivity and SNMP settings.'
+              dependencies:
+                - name: 'Unavailable by ICMP ping'
+                  expression: 'max(/huawei-usg-6585e-v2/icmpping,3)=0'
+              tags:
+                - tag: usg6565e
+                  value: status
+      discovery_rules:
+        - uuid: 27f5514e0ba8448190c9f160e08a4de0
+          name: BGP
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#SNMPVALUE},.1.3.6.1.2.1.15.3.1.2]'
+          key: bgpPeerRemoteAddr
+          delay: 15m
+          lifetime_type: DELETE_IMMEDIATELY
+          lifetime: '0'
+          item_prototypes:
+            - uuid: 76c08795e06048fbbc97e84be3e69e43
+              name: PerrState
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.15.3.1.2.{#SNMPINDEX}'
+              key: 'bgpPeerState.[{#SNMPINDEX}]'
+              delay: 5m
+              valuemap:
+                name: bgpPeerState
+              preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: bgp
+              trigger_prototypes:
+                - uuid: 7b96dd6faba04f4fb116c4ba9e06d20c
+                  expression: 'last(/huawei-usg-6585e-v2/bgpPeerState.[{#SNMPINDEX}])<>6'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/huawei-usg-6585e-v2/bgpPeerState.[{#SNMPINDEX}])=6'
+                  name: 'Peer State {#SNMPINDEX} doesn''t established connection'
+                  priority: AVERAGE
+                  manual_close: 'YES'
+                  dependencies:
+                    - name: 'No SNMP data collection'
+                      expression: 'max(/huawei-usg-6585e-v2/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+                  tags:
+                    - tag: usg6565e
+                      value: bgp
+        - uuid: 7707fceb51d34dc3ad918e2376b03164
+          name: hwEntityStateTable
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#PHYS_NAME},1.3.6.1.2.1.47.1.1.1.1.7,{#CPU},1.3.6.1.4.1.2011.5.25.31.1.1.1.1.5,{#MEM},1.3.6.1.4.1.2011.5.25.31.1.1.1.1.7,{#TEMP},1.3.6.1.4.1.2011.5.25.31.1.1.1.1.11]'
+          key: entPhysicalIndex
+          delay: 1h
+          filter:
+            conditions:
+              - macro: '{#CPU}'
+                value: '{$NOT_NULL}'
+                formulaid: A
+              - macro: '{#MEM}'
+                value: '{$NOT_NULL}'
+                formulaid: B
+              - macro: '{#TEMP}'
+                value: '{$NOT_NULL}'
+                formulaid: C
+          description: 'This table describes entity status, including the management status, operation status, backup status, alarm status, CPU usage and usage threshold, and memory usage and usage threshold.'
+          item_prototypes:
+            - uuid: 0ade5ca04229433bac7ea81b98d4afe1
+              name: 'CPU - {#PHYS_NAME} -  Usage'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.1.1.5.{#SNMPINDEX}'
+              key: 'entPhysicalIndexCPU.[{#SNMPINDEX}]'
+              delay: 10m
+              units: '%'
+              description: 'This object indicates the CPU usage of an entity. Generally, the overall CPU usage of the entity is calculated, without considering the number of CPUs on the entity.'
+              tags:
+                - tag: usg6565e
+                  value: CPU
+              trigger_prototypes:
+                - uuid: 91ae268cace24ef7b50104b7847ae829
+                  expression: 'last(/huawei-usg-6585e-v2/entPhysicalIndexCPU.[{#SNMPINDEX}])>=80'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/huawei-usg-6585e-v2/entPhysicalIndexCPU.[{#SNMPINDEX}])<80'
+                  name: 'CPU - {#PHYS_NAME} -  Usage more then 80%'
+                  priority: HIGH
+                  manual_close: 'YES'
+                  dependencies:
+                    - name: 'No SNMP data collection'
+                      expression: 'max(/huawei-usg-6585e-v2/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+                  tags:
+                    - tag: usg6565e
+                      value: CPU
+            - uuid: 883c8ee2b5f34b99bc6eb198e3461e32
+              name: 'CPU - {#PHYS_NAME} -  Usage Threshold'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.1.1.6.{#SNMPINDEX}'
+              key: 'entPhysicalIndexCPUT.[{#SNMPINDEX}]'
+              delay: 1h
+              units: '%'
+              description: 'This object indicates the CPU usage threshold. When the CPU usage exceeds the threshold, a notification is sent.'
+              tags:
+                - tag: usg6565e
+                  value: CPU
+            - uuid: 3a8d04a9c5d34fc2a9e0b4f86a90f761
+              name: 'Memory  - {#PHYS_NAME} -  Usage'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.1.1.7.{#SNMPINDEX}'
+              key: 'entPhysicalIndexMem.[{#SNMPINDEX}]'
+              delay: 10m
+              units: '%'
+              description: 'This object indicates the memory usage of an entity, that is, the percentage of the memory that has been used.'
+              tags:
+                - tag: usg6565e
+                  value: Memory
+              trigger_prototypes:
+                - uuid: f12becf0fa7a4bfd94308aa4606ee10e
+                  expression: 'last(/huawei-usg-6585e-v2/entPhysicalIndexMem.[{#SNMPINDEX}])>=90'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/huawei-usg-6585e-v2/entPhysicalIndexMem.[{#SNMPINDEX}])<90'
+                  name: 'Memory  - {#PHYS_NAME} -  Usage more then 90%'
+                  priority: HIGH
+                  manual_close: 'YES'
+                  dependencies:
+                    - name: 'No SNMP data collection'
+                      expression: 'max(/huawei-usg-6585e-v2/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+                  tags:
+                    - tag: usg6565e
+                      value: Memory
+            - uuid: de60fec74cd549d6bdf55d0b050fb62a
+              name: 'Memory  - {#PHYS_NAME} -  Usage Threshold'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.1.1.8.{#SNMPINDEX}'
+              key: 'entPhysicalIndexMemT.[{#SNMPINDEX}]'
+              delay: 1h
+              units: '%'
+              description: 'This object indicates the memory usage threshold. When the memory usage exceeds the threshold, a notification is sent.'
+              tags:
+                - tag: usg6565e
+                  value: Memory
+            - uuid: 7a8e2a21472d473f9a22c578e9c2a67b
+              name: 'Temperature - {#PHYS_NAME} - Device'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.1.1.11.{#SNMPINDEX}'
+              key: 'entPhysicalIndexTemp.[{#SNMPINDEX}]'
+              delay: 10m
+              units: C
+              description: 'This object indicates the entity temperature. Unit:centigrade'
+              tags:
+                - tag: usg6565e
+                  value: Temp
+              trigger_prototypes:
+                - uuid: 2e8551e95a7c4f9ab65dcf83179b44e5
+                  expression: 'last(/huawei-usg-6585e-v2/entPhysicalIndexTemp.[{#SNMPINDEX}])>=105'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/huawei-usg-6585e-v2/entPhysicalIndexTemp.[{#SNMPINDEX}])<105'
+                  name: 'Temperature - {#PHYS_NAME} - device more then 105C'
+                  priority: HIGH
+                  manual_close: 'YES'
+                  dependencies:
+                    - name: 'No SNMP data collection'
+                      expression: 'max(/huawei-usg-6585e-v2/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+                  tags:
+                    - tag: usg6565e
+                      value: Temp
+            - uuid: 0d51be02488a42c28550d85d09c0a60f
+              name: 'Temperature - {#PHYS_NAME} - Device Threshold'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.5.25.31.1.1.1.1.12.{#SNMPINDEX}'
+              key: 'entPhysicalIndexTempT.[{#SNMPINDEX}]'
+              delay: 1h
+              units: C
+              description: 'This object indicates the upper threshold of the entity temperature. Unit:centigrade'
+              tags:
+                - tag: usg6565e
+                  value: Temp
+          trigger_prototypes:
+            - uuid: 3eba962875d7488d85c7f48db465dc9e
+              expression: 'last(/huawei-usg-6585e-v2/entPhysicalIndexTemp.[{#SNMPINDEX}])<=5'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'last(/huawei-usg-6585e-v2/entPhysicalIndexTempT.[{#SNMPINDEX}])>=5'
+              name: 'Temperature - {#PHYS_NAME} - device less then 5C'
+              priority: HIGH
+              manual_close: 'YES'
+              dependencies:
+                - name: 'No SNMP data collection'
+                  expression: 'max(/huawei-usg-6585e-v2/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              tags:
+                - tag: usg6565e
+                  value: Temp
+          graph_prototypes:
+            - uuid: 81b5ca75ba1746a08d7ad069abf44a32
+              name: 'CPU {#PHYS_NAME}:  Usage'
+              graph_items:
+                - drawtype: BOLD_LINE
+                  color: FF0000
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'entPhysicalIndexCPUT.[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  drawtype: FILLED_REGION
+                  color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'entPhysicalIndexCPU.[{#SNMPINDEX}]'
+            - uuid: 0570a3845511491799015ff3479f0b85
+              name: 'Memory {#PHYS_NAME}:  Usage'
+              graph_items:
+                - drawtype: BOLD_LINE
+                  color: FF0000
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'entPhysicalIndexMemT.[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  drawtype: FILLED_REGION
+                  color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'entPhysicalIndexMem.[{#SNMPINDEX}]'
+            - uuid: 4f58394ca19a48d68e09b002bb2f949d
+              name: 'Temp {#PHYS_NAME}:  Usage'
+              graph_items:
+                - drawtype: BOLD_LINE
+                  color: FF0000
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'entPhysicalIndexTempT.[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  drawtype: FILLED_REGION
+                  color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'entPhysicalIndexTemp.[{#SNMPINDEX}]'
+        - uuid: 077be6a201e441598b8f46b76df9e12f
+          name: PhysicalTable
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#PHYS_DESCR},1.3.6.1.2.1.47.1.1.1.1.2,{#PHYSICAL_NAME},1.3.6.1.2.1.47.1.1.1.1.7,{#SERIAL_NUM},1.3.6.1.2.1.47.1.1.1.1.11]'
+          key: entPhysicalTable
+          delay: 1h
+          filter:
+            conditions:
+              - macro: '{#SERIAL_NUM}'
+                value: '{$SN.NOT.EMPTY}'
+                formulaid: A
+          lifetime_type: DELETE_IMMEDIATELY
+          lifetime: '0'
+          description: |
+            This table contains one row per physical entity.  There is
+            always at least one row for an 'overall' physical entity.
+          item_prototypes:
+            - uuid: 4eb90721e583403ba4113d5258fb8e45
+              name: 'Physical Descr {#PHYS_DESCR}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.47.1.1.1.1.2.{#SNMPINDEX}'
+              key: 'entPhysicalIndex.[{#SNMPINDEX}]'
+              delay: 1h
+              value_type: TEXT
+              trends: '0'
+              description: |
+                A textual description of physical entity.  This object
+                should contain a string that identifies the manufacturer's
+                name for the physical entity, and should be set to a
+                distinct value for each version or model of the physical
+                entity.
+              preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6585e
+                  value: inventory
+            - uuid: 4ee994b4ed4947ec8df00fa4d471d171
+              name: 'Physical Name {#PHYSICAL_NAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.47.1.1.1.1.7.{#SNMPINDEX}'
+              key: 'entPhysicalTable.[{#SNMPINDEX}]'
+              delay: 1h
+              value_type: TEXT
+              trends: '0'
+              description: |
+                The textual name of the physical entity.  The value of this
+                object should be the name of the component as assigned by
+                the local device and should be suitable for use in commands
+                entered at the device's `console'.  This might be a text
+                name (e.g., `console') or a simple component number (e.g.,
+                port or module number, such as `1'), depending on the
+                physical component naming syntax of the device.
+                If there is no local name, or if this object is otherwise
+                not applicable, then this object contains a zero-length
+                string.
+                Note that the value of entPhysicalName for two physical
+                entities will be the same in the event that the console
+                interface does not distinguish between them, e.g., slot-1
+                and the card in slot-1.
+              preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6585e
+                  value: inventory
+            - uuid: bf5852d629e54ad0873278205d512398
+              name: 'Serial Number {#PHYS_DESCR}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.47.1.1.1.1.11.{#SNMPINDEX}'
+              key: 'PhysicalTable.[{#SNMPINDEX}]'
+              delay: 1h
+              value_type: TEXT
+              trends: '0'
+              description: |
+                The vendor-specific serial number string for the physical
+                entity.  The preferred value is the serial number string
+                actually printed on the component itself (if present).
+                On the first instantiation of an physical entity, the value
+                of entPhysicalSerialNum associated with that entity is set
+                to the correct vendor-assigned serial number, if this
+                information is available to the agent.  If a serial number
+                is unknown or non-existent, the entPhysicalSerialNum will be
+                set to a zero-length string instead.
+                Note that implementations that can correctly identify the
+                serial numbers of all installed physical entities do not
+                need to provide write access to the entPhysicalSerialNum
+                object.  Agents which cannot provide non-volatile storage
+                for the entPhysicalSerialNum strings are not required to
+                implement write access for this object.
+                Not every physical component will have a serial number, or
+                even need one.  Physical entities for which the associated
+                value of the entPhysicalIsFRU object is equal to 'false(2)'
+                (e.g., the repeater ports within a repeater module), do not
+                need their own unique serial number.  An agent does not have
+                to provide write access for such entities, and may return a
+                zero-length string.
+                If write access is implemented for an instance of
+                entPhysicalSerialNum, and a value is written into the
+                instance, the agent must retain the supplied value in the
+                entPhysicalSerialNum instance (associated with the same
+                physical entity) for as long as that entity remains
+                instantiated.  This includes instantiations across all
+                re-initializations/reboots of the network management system,
+                including those resulting in a change of the physical
+                entity's entPhysicalIndex value.
+              preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6585e
+                  value: inventory
+        - uuid: 599d3b10a094416eb996835236bd6bff
+          name: MemoryTable
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#MEMDEVSIZE},1.3.6.1.4.1.2011.6.3.5.1.1.2,{#MEMFREESIZE},1.3.6.1.4.1.2011.6.3.5.1.1.3,{#MEMOCSIZE},1.3.6.1.4.1.2011.6.3.5.1.1.4,{#MEMALOCSIZE}, .1.3.6.1.4.1.2011.6.3.5.1.1.5]'
+          key: hwFrameIndex
+          delay: 1h
+          lifetime_type: DELETE_IMMEDIATELY
+          lifetime: '0'
+          description: 'This table describes memory usage statistics, including the total memory, idle memory, and occupied memory.'
+          item_prototypes:
+            - uuid: 755c0468e6404af1b5381d3a96ef83c7
+              name: 'Memory Size'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.2011.6.3.5.1.1.2.{#SNMPINDEX}'
+              key: 'hwFrameIndex.[{#SNMPINDEX}]'
+              delay: 3m
+              units: bytes
+              description: |
+                This object indicates the total memory size of a managed object, in bytes. It includes the free memory size and occupied memory size, that is, the sum of hwMemoryDevFree and hwMemoryDevRawSliceUsed.
+                Each board has a memory. The memory size varies with products.
+              tags:
+                - tag: usg6565e
+                  value: memory
+            - uuid: 0afe670e39f340c59984ee7a8850298b
+              name: 'Memory Can be Allocated'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.3.5.1.1.5.{#SNMPINDEX}'
+              key: 'hwFrameIndexAlloc.[{#SNMPINDEX}]'
+              delay: 3m
+              units: bytes
+              description: 'This object indicates the maximum number of consecutive bytes that are not occupied on a managed object. It is the maximum memory size that can be allocated by the system. The value of this object is always less than hwMemoryDevSize.'
+              tags:
+                - tag: usg6565e
+                  value: memory
+            - uuid: 2b508b4c51864ecbbc01676ddc4f3fe5
+              name: 'Memory Free'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.3.5.1.1.3.{#SNMPINDEX}'
+              key: 'hwFrameIndexFree.[{#SNMPINDEX}]'
+              delay: 3m
+              units: bytes
+              description: 'This object indicates the idle memory size of the main control board, in bytes. The value of this object is always less than hwMemoryDevSize.'
+              tags:
+                - tag: usg6565e
+                  value: memory
+            - uuid: 24b2e2da50754398b6c39dadc42f92a7
+              name: 'Memory Used'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.3.5.1.1.4.{#SNMPINDEX}'
+              key: 'hwFrameIndexUsed.[{#SNMPINDEX}]'
+              delay: 3m
+              units: bytes
+              description: 'This object indicates the total size of occupied raw slice memory, in bytes. The value of this object is always less than hwMemoryDevSize.'
+              tags:
+                - tag: usg6565e
+                  value: memory
+          graph_prototypes:
+            - uuid: a8130b6a34734b0b8684254532327270
+              name: 'Memory  - {#SNMPINDEX} -  Usage'
+              graph_items:
+                - drawtype: GRADIENT_LINE
+                  color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'hwFrameIndex.[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  drawtype: GRADIENT_LINE
+                  color: F63100
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'hwFrameIndexFree.[{#SNMPINDEX}]'
+                - sortorder: '2'
+                  drawtype: BOLD_LINE
+                  color: 2774A4
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'hwFrameIndexUsed.[{#SNMPINDEX}]'
+                - sortorder: '3'
+                  drawtype: DASHED_LINE
+                  color: F7941D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'hwFrameIndexAlloc.[{#SNMPINDEX}]'
+        - uuid: ba4855ab2189410390820c5a7807c7a5
+          name: HrpObjects
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#LOCALID},1.3.6.1.4.1.2011.6.122.51.1.1,{#PEERID},1.3.6.1.4.1.2011.6.122.51.1.2,{#STATE},1.3.6.1.4.1.2011.6.122.51.1.3]'
+          key: hwHrpLocalID
+          delay: 1h
+          description: 'HRP objects'
+          item_prototypes:
+            - uuid: 329c690c3d3549a6affc95ab91010130
+              name: HrpLocalID
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.51.1.1.{#SNMPINDEX}'
+              key: 'hwHrpLocalID.[{#SNMPINDEX}]'
+              delay: 10m
+              value_type: TEXT
+              trends: '0'
+              description: 'The local device ID(The mac address of ethernet interface).'
+              preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: hrp
+            - uuid: 3e8c9d96f4d249749a56146eab413e53
+              name: HrpPeerID
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.51.1.2.{#SNMPINDEX}'
+              key: 'hwHrpPeerID.[{#SNMPINDEX}]'
+              delay: 10m
+              value_type: TEXT
+              trends: '0'
+              description: 'The peer device ID(The mac address of ethernet interface).'
+              preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: hrp
+            - uuid: 9002544f6c46425d824ba5c644916ccf
+              name: hwHrpState
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.51.1.3.{#SNMPINDEX}'
+              key: 'hwHrpState.[{#SNMPINDEX}]'
+              delay: 10m
+              value_type: TEXT
+              trends: '0'
+              description: 'The current state of device.'
+              preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: hrp
+              trigger_prototypes:
+                - uuid: 5221599afacc44f793b04ebe445ff6c7
+                  expression: 'length(last(/huawei-usg-6585e-v2/hwHrpState.[{#SNMPINDEX}]))<>6'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'length(last(/huawei-usg-6585e-v2/hwHrpState.[{#SNMPINDEX}]))=6'
+                  name: 'Hrp State {#SNMPINDEX} is not normal'
+                  priority: HIGH
+                  manual_close: 'YES'
+                  dependencies:
+                    - name: 'No SNMP data collection'
+                      expression: 'max(/huawei-usg-6585e-v2/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+                  tags:
+                    - tag: usg6565e
+                      value: hrp
+        - uuid: e15c0a41e4644c6da92671c7a903653b
+          name: IPSecTunnelStatsTable
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#BPERSECIN},1.3.6.1.4.1.2011.6.122.26.3.1.24,{#BPERSECOUT},1.3.6.1.4.1.2011.6.122.26.3.1.25,{#PPSIN},1.3.6.1.4.1.2011.6.122.26.3.1.26,{#PPSOUT},1.3.6.1.4.1.2011.6.122.26.3.1.27,{#PPSERRIN},1.3.6.1.4.1.2011.6.122.26.3.1.28, {#PPSERROUT},1.3.6.1.4.1.2011.6.122.26.3.1.29,{#TUNPOLNAME}, .1.3.6.1.4.1.2011.6.122.26.2.1.27]'
+          key: hwIPSecIfIndex
+          delay: 1h
+          lifetime_type: DELETE_IMMEDIATELY
+          lifetime: '0'
+          description: 'This table specifies the status attributes for Huawei IPSec tunnel.'
+          item_prototypes:
+            - uuid: 57eccc2403d54cdd91324a98a633d479
+              name: 'Inbound Tunnel Bytes Per Second: {#TUNPOLNAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.26.3.1.24.{#SNMPINDEX}'
+              key: 'inIPSecIfIndex.[{#SNMPINDEX}]'
+              delay: 3m
+              units: bps
+              description: 'Speed of inbound flow in bytes.'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+              tags:
+                - tag: usg6565e
+                  value: tunnel
+            - uuid: fcd2b5f9e9ec4214832927e16cb663e4
+              name: 'Outound Tunnel Bytes Per Second: {#TUNPOLNAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.26.3.1.25.{#SNMPINDEX}'
+              key: 'outIPSecIfIndex.[{#SNMPINDEX}]'
+              delay: 3m
+              units: bps
+              description: 'Speed of outbound flow in bytes.'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+              tags:
+                - tag: usg6565e
+                  value: tunnel
+            - uuid: ba8397bd72674e4894c15c584f06facb
+              name: 'Intbound error packets per second interface: {#TUNPOLNAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.26.3.1.28.{#SNMPINDEX}'
+              key: 'ppsERRinPSecIfIndex.[{#SNMPINDEX}]'
+              delay: 3m
+              units: pps
+              description: 'Speed of inbound error packets.'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: tunnel
+            - uuid: 9451337b6a6e4610bdc8ff70609f89b4
+              name: 'Outtbound error packets per second interface: {#TUNPOLNAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.26.3.1.29.{#SNMPINDEX}'
+              key: 'ppsERRoutPSecIfIndex.[{#SNMPINDEX}]'
+              delay: 3m
+              units: pps
+              description: 'Speed of outbound error packets.'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: tunnel
+            - uuid: 928879ce91ac442481bb25f5eaf45f65
+              name: 'Intbound packets per second interface: {#TUNPOLNAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.26.3.1.26.{#SNMPINDEX}'
+              key: 'ppsinPSecIfIndex.[{#SNMPINDEX}]'
+              delay: 3m
+              units: pps
+              description: 'Speed of inbound flow in packets.'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: tunnel
+            - uuid: 728dacab0e9b40f2a8a30dc2af601902
+              name: 'Outtbound packets per second interface: {#TUNPOLNAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.26.3.1.27.{#SNMPINDEX}'
+              key: 'ppsoutPSecIfIndex.[{#SNMPINDEX}]'
+              delay: 3m
+              units: pps
+              description: 'Speed of outbound flow in packets'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: tunnel
+          trigger_prototypes:
+            - uuid: 64b06a79d58448eaaec6e5fdc189e0dc
+              expression: 'min(/huawei-usg-6585e-v2/ppsERRinPSecIfIndex.[{#SNMPINDEX}],3m)>0 or min(/huawei-usg-6585e-v2/ppsERRoutPSecIfIndex.[{#SNMPINDEX}],3m)>0'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'min(/huawei-usg-6585e-v2/ppsERRinPSecIfIndex.[{#SNMPINDEX}],3m)=0 or min(/huawei-usg-6585e-v2/ppsERRoutPSecIfIndex.[{#SNMPINDEX}],3m)=0'
+              name: 'Interface {#TUNPOLNAME}: High error rate'
+              priority: AVERAGE
+              description: 'Recover if no error(0) on tunnel'
+              manual_close: 'YES'
+              dependencies:
+                - name: 'No SNMP data collection'
+                  expression: 'max(/huawei-usg-6585e-v2/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              tags:
+                - tag: usg6565e
+                  value: tunnel
+          graph_prototypes:
+            - uuid: 9ccec797a6c54978b848bbb97b69cf8f
+              name: 'Interface {#TUNPOLNAME}:  Network traffic'
+              graph_items:
+                - drawtype: GRADIENT_LINE
+                  color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'inIPSecIfIndex.[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  drawtype: GRADIENT_LINE
+                  color: F63100
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'outIPSecIfIndex.[{#SNMPINDEX}]'
+            - uuid: 6a5785653d3347a9b3aa6bfd87fc6da5
+              name: 'Interface {#TUNPOLNAME}:  packets per second'
+              graph_items:
+                - drawtype: GRADIENT_LINE
+                  color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'ppsinPSecIfIndex.[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  drawtype: GRADIENT_LINE
+                  color: F63100
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'ppsoutPSecIfIndex.[{#SNMPINDEX}]'
+                - sortorder: '2'
+                  drawtype: DASHED_LINE
+                  color: 2774A4
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'ppsERRinPSecIfIndex.[{#SNMPINDEX}]'
+                - sortorder: '3'
+                  drawtype: DASHED_LINE
+                  color: F7941D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'ppsERRoutPSecIfIndex.[{#SNMPINDEX}]'
+        - uuid: 6a384556c4bf4df4aa276b37bfa8b737
+          name: StatTotalSess
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#TSESS},1.3.6.1.4.1.2011.6.122.15.1.2.1.4,{#HSESS},1.3.6.1.4.1.2011.6.122.15.1.2.1.5,{#TCPSESS},1.3.6.1.4.1.2011.6.122.15.1.2.1.6,{#UDPSESS}, .1.3.6.1.4.1.2011.6.122.15.1.2.1.7,{#ICMPSESS},1.3.6.1.4.1.2011.6.122.15.1.2.1.8]'
+          key: hwSecStatMonTotalSess
+          delay: 1h
+          description: 'Sessions in firewal'
+          item_prototypes:
+            - uuid: 448fe944ded0412fa7443311d8f32820
+              name: SecStatHalfConn
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.15.1.2.1.5.{#SNMPINDEX}'
+              key: 'hwSecStatMonHalfConn.[{#SNMPINDEX}]'
+              delay: 10m
+              units: session
+              description: 'The number of incomplete session in system currently.'
+              tags:
+                - tag: usg6565e
+                  value: sessions
+            - uuid: cd87cc4da4d845779a92427a38bee5fe
+              name: SecStatIcmpSess
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.15.1.2.1.8.{#SNMPINDEX}'
+              key: 'hwSecStatMonIcmpSess.[{#SNMPINDEX}]'
+              delay: 10m
+              units: session
+              description: 'The current number of ICMP sessions.'
+              tags:
+                - tag: usg6565e
+                  value: sessions
+            - uuid: d04e7cefbfa34e5db7ea07a5a9f7a3bc
+              name: SecStatTcpSess
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.15.1.2.1.6.{#SNMPINDEX}'
+              key: 'hwSecStatMonTcpSess.[{#SNMPINDEX}]'
+              delay: 10m
+              units: session
+              description: 'The current number of TCP sessions.'
+              tags:
+                - tag: usg6565e
+                  value: sessions
+            - uuid: 935c92dfcfd247a5bd88b80b19238955
+              name: SecStatTotalSess
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.15.1.2.1.4.{#SNMPINDEX}'
+              key: 'hwSecStatMonTotalSess.[{#SNMPINDEX}]'
+              delay: 10m
+              units: session
+              description: 'The total session in the system currently.'
+              tags:
+                - tag: usg6565e
+                  value: sessions
+            - uuid: 2d47eadb43bd4e7e8a9ea061905d04f6
+              name: SecStatUdpSess
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.122.15.1.2.1.7.{#SNMPINDEX}'
+              key: 'hwSecStatMonUdpSess.[{#SNMPINDEX}]'
+              delay: 10m
+              units: session
+              description: 'The current number of UDP sessions.'
+              tags:
+                - tag: usg6565e
+                  value: sessions
+          graph_prototypes:
+            - uuid: 998c4cba1cb044f9a4d55d2ffbe8351f
+              name: 'Sessions - {#SNMPINDEX}'
+              graph_items:
+                - color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'hwSecStatMonTotalSess.[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  color: F63100
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'hwSecStatMonHalfConn.[{#SNMPINDEX}]'
+                - sortorder: '2'
+                  color: 2774A4
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'hwSecStatMonIcmpSess.[{#SNMPINDEX}]'
+                - sortorder: '3'
+                  color: F7941D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'hwSecStatMonTcpSess.[{#SNMPINDEX}]'
+                - sortorder: '4'
+                  color: FC6EA3
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'hwSecStatMonUdpSess.[{#SNMPINDEX}]'
+        - uuid: 00b1ccf0f2a24d8282d550d3a233c0f2
+          name: 'Storage Table'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#STORAGENAME},1.3.6.1.4.1.2011.6.9.1.4.2.1.5,{#STORAGESPACE},1.3.6.1.4.1.2011.6.9.1.4.2.1.3,{#STORAGESPACEFREE},1.3.6.1.4.1.2011.6.9.1.4.2.1.4]'
+          key: hwStorageIndex
+          delay: 1h
+          lifetime_type: DELETE_IMMEDIATELY
+          lifetime: '0'
+          description: 'This table gives the properties of all the storage devices on the device .'
+          item_prototypes:
+            - uuid: 6beef2fae3544ac2a206006a04b2db5b
+              name: 'Available space storage: {#STORAGENAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.9.1.4.2.1.3.{#SNMPINDEX}'
+              key: 'hwStorageIndexAv.[{#SNMPINDEX}]'
+              delay: 5m
+              units: bytes
+              description: 'Specifies the total size of the storage devices  indexed by hwStorageTable.'
+              tags:
+                - tag: usg6585e
+                  value: storage
+            - uuid: 225f061dfa45494fb65d904d545a717f
+              name: 'Free space storage: {#STORAGENAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.2011.6.9.1.4.2.1.4.{#SNMPINDEX}'
+              key: 'hwStorageIndexFree.[{#SNMPINDEX}]'
+              delay: 5m
+              units: bytes
+              description: 'The free space of the storage devices.'
+              tags:
+                - tag: usg6585e
+                  value: storage
+          graph_prototypes:
+            - uuid: 86f9181c273b4fe7807d8b80316dec28
+              name: 'Storage Space: {#STORAGENAME}'
+              yaxismax: '0'
+              show_work_period: 'NO'
+              show_triggers: 'NO'
+              type: PIE
+              show_legend: 'NO'
+              show_3d: 'YES'
+              graph_items:
+                - color: 199C0D
+                  calc_fnc: MIN
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'hwStorageIndexAv.[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  color: F63100
+                  calc_fnc: MIN
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'hwStorageIndexFree.[{#SNMPINDEX}]'
+        - uuid: d3d7e4302eaa46fc8f50e7e434973070
+          name: interfacesTable
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#INDESCR},1.3.6.1.2.1.2.2.1.2,{#TYPE},1.3.6.1.2.1.2.2.1.3,{#MTU},1.3.6.1.2.1.2.2.1.4,{#SPEED},1.3.6.1.2.1.2.2.1.5,{#OPERSTATUS},1.3.6.1.2.1.2.2.1.8, {#INOCTS}, 1.3.6.1.2.1.2.2.1.10,{#INDISC}, 1.3.6.1.2.1.2.2.1.13,{#INERR}, 1.3.6.1.2.1.2.2.1.14, {#OUTOCTS}, 1.3.6.1.2.1.2.2.1.16, {#OUTDISC}, 1.3.6.1.2.1.2.2.1.19, {#OUTERR}, 1.3.6.1.2.1.2.2.1.20]'
+          key: ifIndex
+          delay: 1h
+          filter:
+            evaltype: AND
+            conditions:
+              - macro: '{#INDESCR}'
+                value: '{$NET.IF.IFDESCR.MATCHES}'
+                formulaid: A
+              - macro: '{#OPERSTATUS}'
+                value: '{$NET.IF.IFOPERSTATUS.MATCHES}'
+                formulaid: B
+              - macro: '{#TYPE}'
+                value: '{$NET.IF.TYPE.NOTMATCHES}'
+                operator: NOT_MATCHES_REGEX
+                formulaid: C
+          lifetime_type: DELETE_IMMEDIATELY
+          lifetime: '0'
+          description: |
+            A list of interface entries.  The number of entries
+            is given by the value of ifNumber.
+          item_prototypes:
+            - uuid: 734aa96fc89646339c6d738e5e157819
+              name: 'Inbound packets discarded interface: {#INDESCR}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.13.{#SNMPINDEX}'
+              key: 'ifInDiscards.[{#SNMPINDEX}]'
+              delay: 5m
+              units: pps
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: interface
+            - uuid: 240499f96e2e47ee95a0d9678a8eff05
+              name: 'Inbound packets with errors in iterface: {#INDESCR}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.14.{#SNMPINDEX}'
+              key: 'ifInErrors.[{#SNMPINDEX}]'
+              delay: 5m
+              units: pps
+              description: |
+                For packet-oriented interfaces, the number of inbound
+                packets that contained errors preventing them from
+                being deliverable to a higher-layer protocol.  For
+                character-oriented or fixed-length interfaces, the
+                number of inbound transmission units that contained
+                errors preventing them from being deliverable to a
+                higher-layer protocol.
+                Discontinuities in the value of this counter can occur
+                at re-initialization of the management system, and at
+                other times as indicated by the value of
+                ifCounterDiscontinuityTime.
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: interface
+            - uuid: cda798f345054708afcac9b628d11461
+              name: 'Inbound traffic on Interface: {#INDESCR}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.10.{#SNMPINDEX}'
+              key: 'ifInOctets.[{#SNMPINDEX}]'
+              delay: 5m
+              units: bps
+              description: |
+                The total number of octets received on the interface,
+                including framing characters.
+                Discontinuities in the value of this counter can occur
+                at re-initialization of the management system, and at
+                other times as indicated by the value of
+                ifCounterDiscontinuityTime.
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+              tags:
+                - tag: usg6565e
+                  value: Interface
+            - uuid: 7e56874753284289a9a7a0d1ba21b9db
+              name: 'Interface {#INDESCR}: MTU'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.4.{#SNMPINDEX}'
+              key: 'ifMtu.[{#SNMPINDEX}]'
+              delay: 20m
+              units: bytes
+              description: |
+                The size of the largest packet which can be
+                sent/received on the interface, specified in octets.
+                For interfaces that are used for transmitting network
+                datagrams, this is the size of the largest network
+                datagram that can be sent on the interfac
+              preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: interface
+            - uuid: 46881f25e7a74a71880a0b2054606f01
+              name: 'Outbound packets discarded interface: {#INDESCR}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.19.{#SNMPINDEX}'
+              key: 'ifOutDiscards.[{#SNMPINDEX}]'
+              delay: 5m
+              units: pps
+              description: |
+                The number of outbound packets which were chosen to
+                be discarded even though no errors had been detected
+                to prevent their being transmitted.  One possible
+                reason for discarding such a packet could be to free
+                up buffer space.
+                Discontinuities in the value of this counter can occur
+                at re-initialization of the management system, and at
+                other times as indicated by the value of
+                ifCounterDiscontinuityTime.
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: interface
+            - uuid: 08d383382958481ca15522707a13a1d2
+              name: 'Outbound packets with errors in iterface: {#INDESCR}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.20.{#SNMPINDEX}'
+              key: 'ifOutErrors.[{#SNMPINDEX}]'
+              delay: 5m
+              units: pps
+              description: |
+                For packet-oriented interfaces, the number of
+                outbound packets that could not be transmitted because
+                of errors.  For character-oriented or fixed-length
+                interfaces, the number of outbound transmission units
+                that could not be transmitted because of errors.
+                Discontinuities in the value of this counter can occur
+                at re-initialization of the management system, and at
+                other times as indicated by the value of
+                ifCounterDiscontinuityTime.
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: interface
+            - uuid: 2e0c242d3fff447da6f535df4183430d
+              name: 'Outbound traffic on Interface: {#INDESCR}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.16.{#SNMPINDEX}'
+              key: 'ifOutOctets.[{#SNMPINDEX}]'
+              delay: 5m
+              units: bps
+              description: |
+                The total number of octets transmitted out of the
+                interface, including framing characters.
+                Discontinuities in the value of this counter can occur
+                at re-initialization of the management system, and at
+                other times as indicated by the value of
+                ifCounterDiscontinuityTime.
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+              tags:
+                - tag: usg6565e
+                  value: interface
+            - uuid: 700fa75e05d44c779c5458d54b33c31a
+              name: 'Interface {#INDESCR}: Speed'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.5.{#SNMPINDEX}'
+              key: 'speedIndex.[{#SNMPINDEX}]'
+              delay: 10m
+              units: Gps
+              description: |
+                An estimate of the interface's current bandwidth in
+                bits per second.  For interfaces which do not vary in
+                bandwidth or for those where no accurate estimation
+                can be made, this object should contain the nominal
+                bandwidth.  If the bandwidth of the interface is
+                greater than the maximum value reportable by this
+                object then this object should report its maximum
+                value (4,294,967,295) and ifHighSpeed must be used to
+                report the interace's speed.  For a sub-layer which
+                has no concept of bandwidth, this object should be
+                zero.
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '1.0E-9'
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+              tags:
+                - tag: usg6565e
+                  value: interface
+          trigger_prototypes:
+            - uuid: 3bffd634bd2b47c3b5485260677f0422
+              expression: 'min(/huawei-usg-6585e-v2/ifInDiscards.[{#SNMPINDEX}],5m)>"{$IF.ERRORS.WARN:\"{#INDESCR}\"" or min(/huawei-usg-6585e-v2/ifOutErrors.[{#SNMPINDEX}],5m)>{$IF.ERRORS.WARN:"{#INDESCR}"}'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'min(/huawei-usg-6585e-v2/ifInDiscards.[{#SNMPINDEX}],5m)<{$IF.ERRORS.WARN:"{#INDESCR}"} or min(/huawei-usg-6585e-v2/ifOutErrors.[{#SNMPINDEX}],5m)<{$IF.ERRORS.WARN:"{#INDESCR}"}'
+              name: 'Interface {#INDESCR}: High error rate'
+              opdata: 'errors in: {ITEM.LASTVALUE1}, errors out: {ITEM.LASTVALUE2}'
+              priority: AVERAGE
+              description: 'Recovers when below 80% of {$IF.ERRORS.WARN:"{#INDESCR}"} threshold'
+              manual_close: 'YES'
+              dependencies:
+                - name: 'No SNMP data collection'
+                  expression: 'max(/huawei-usg-6585e-v2/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              tags:
+                - tag: usg6565e
+                  value: interfaces
+          graph_prototypes:
+            - uuid: 1126b3d8b69c48db862a9127ea84b9e8
+              name: 'Interface {#INDESCR}: Network traffic'
+              graph_items:
+                - drawtype: GRADIENT_LINE
+                  color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'ifInOctets.[{#SNMPINDEX}]'
+                - sortorder: '1'
+                  drawtype: GRADIENT_LINE
+                  color: F63100
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'ifOutOctets.[{#SNMPINDEX}]'
+                - sortorder: '2'
+                  drawtype: DOTTED_LINE
+                  color: 2774A4
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'ifInDiscards.[{#SNMPINDEX}]'
+                - sortorder: '3'
+                  drawtype: DOTTED_LINE
+                  color: F7941D
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'ifOutDiscards.[{#SNMPINDEX}]'
+                - sortorder: '4'
+                  drawtype: DASHED_LINE
+                  color: FC6EA3
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'ifInErrors.[{#SNMPINDEX}]'
+                - sortorder: '5'
+                  drawtype: DASHED_LINE
+                  color: 6C59DC
+                  calc_fnc: ALL
+                  item:
+                    host: huawei-usg-6585e-v2
+                    key: 'ifOutErrors.[{#SNMPINDEX}]'
+      macros:
+        - macro: '{$IF.ERRORS.WARN}'
+          value: '2'
+        - macro: '{$NET.IF.IFDESCR.MATCHES}'
+          value: '.*'
+        - macro: '{$NET.IF.IFNAME.MATCHES}'
+          value: '^.*$'
+        - macro: '{$NET.IF.IFOPERSTATUS.MATCHES}'
+          value: '1'
+        - macro: '{$NET.IF.TYPE.NOTMATCHES}'
+          value: '1'
+        - macro: '{$NOT_NULL}'
+          value: '[1-9]+'
+          description: 'Not Empty'
+        - macro: '{$SN.NOT.EMPTY}'
+          value: '^[A-z0-9]+$'
+          description: 'Not Empty'
+      valuemaps:
+        - uuid: 25e2f380c4854ed2826281638534d3e0
+          name: bgpPeerState
+          mappings:
+            - value: '1'
+              newvalue: idle
+            - value: '2'
+              newvalue: connect
+            - value: '3'
+              newvalue: active
+            - value: '4'
+              newvalue: opensent
+            - value: '5'
+              newvalue: openconfirm
+            - value: '6'
+              newvalue: establiched
