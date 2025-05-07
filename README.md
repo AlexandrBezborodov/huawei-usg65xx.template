@@ -1,0 +1,1 @@
+# huawei-usg65xx.template
